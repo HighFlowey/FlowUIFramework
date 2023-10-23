@@ -1,4 +1,4 @@
-local Signal = require(script:WaitForChild("Packages"):WaitForChild("signal"))
+local Signal = require(script.Parent.signal)
 
 local module = {}
 module.Children = "SpecialCharacter_Children"

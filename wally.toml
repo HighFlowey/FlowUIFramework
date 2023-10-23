@@ -1,6 +1,6 @@
 [package]
 name = "highflowey/flowuiframework"
-version = "0.0.5"
+version = "0.0.7"
 registry = "https://github.com/UpliftGames/wally-index"
 description = "Inspired by fusion"
 realm = "shared"
