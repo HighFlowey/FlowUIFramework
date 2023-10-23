@@ -1,2 +1,1 @@
-# ErrorHandle
-Made for handling errors
+# Framework inspired by fusion
