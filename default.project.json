@@ -1,9 +1,10 @@
 {
-    "name": "FlowUIFramework",
-    "tree": {
-        "$path": "src",
-        "Packages": {
-            "$path": "Packages"
-        }
+  "name": "FlowUIFramework",
+  "tree": {
+    "$path": "src",
+    "Packages": {
+      "$className": "Folder",
+      "$path": "Packages"
     }
+  }
 }
