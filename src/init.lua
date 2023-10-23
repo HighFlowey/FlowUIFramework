@@ -7,6 +7,11 @@ module.Merge = "SpecialCharacter_Merge"
 local handlerClass = {}
 module.__index = handlerClass
 
+local defaultProperties = {
+	["TextScaled"] = true,
+	["Size"] = UDim2.fromOffset(100, 50),
+}
+
 local function SetProperty(object: Instance, property: string, value: any)
 	if typeof(value) == "userdata" and value.value then
 		-- this value is made by using the module.Value function
@@ -16,7 +21,9 @@ local function SetProperty(object: Instance, property: string, value: any)
 		end)
 	else
 		-- could be a normal roblox property
-		object[property] = value
+		local _ = pcall(function()
+			object[property] = value
+		end)
 	end
 end
 
@@ -43,6 +50,8 @@ end
 function module.new(className: string)
 	local object = Instance.new(className)
 	local handler = setmetatable({ object = object }, module)
+
+	handler:Render(defaultProperties)
 
 	return handler
 end
