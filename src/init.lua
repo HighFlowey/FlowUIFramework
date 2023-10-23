@@ -8,7 +8,7 @@ local handlerClass = {}
 module.__index = handlerClass
 
 local function SetProperty(object: Instance, property: string, value: any)
-	if typeof(value) == "table" and value.value then
+	if typeof(value) == "userdata" and value.value then
 		-- this value is made by using the module.Value function
 		object[property] = value.value
 		value.onChanged:Connect(function(newValue)
