@@ -5,6 +5,7 @@
 
     "ReplicatedStorage": {
       "$className": "ReplicatedStorage",
+      "$path": "src/Packages",
       "FlowUIFramework": {
         "$path": "src"
       }

@@ -1,4 +1,4 @@
-local Signal = require(script.Packages.signal)
+local Signal = require(script.Parent.signal)
 
 local SPECIAL_CHARACTER_KEY = "SPCR"
 local OUTPUT = false
