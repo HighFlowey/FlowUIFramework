@@ -1,0 +1,21 @@
+{
+  "name": "FlowUIFramework",
+  "tree": {
+    "$className": "DataModel",
+
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "FlowUIFramework": {
+        "$path": "src"
+      }
+    },
+
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "$path": "test"
+      }
+    }
+  }
+}

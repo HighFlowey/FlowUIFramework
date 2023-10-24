@@ -1,10 +1,13 @@
-local Signal = require(script.Parent.signal)
+local Signal = require(script.Packages.signal)
 
+local memory = {}
 local module = {}
+module.Reference = "SpecialCharacter_Reference"
 module.Children = "SpecialCharacter_Children"
 module.Merge = "SpecialCharacter_Merge"
 
 local handlerClass = {}
+handlerClass.SavedProperties = {}
 module.__index = handlerClass
 
 local defaultProperties = {
@@ -16,6 +19,7 @@ local function SetProperty(object: Instance, property: string, value: any)
 	if typeof(value) == "userdata" and value.value then
 		-- this value is made by using the module.Value function
 		object[property] = value.value
+		memory[object].SavedProperties[property] = value
 		value.onChanged:Connect(function(newValue)
 			object[property] = newValue
 		end)
@@ -35,9 +39,18 @@ function handlerClass:Render(properties: {})
 			end
 		elseif i == module.Merge then
 			self:Render(v)
+		elseif i == module.Reference then
+			v.value = self.object
 		elseif i == "Parent" then
 			task.defer(function()
 				SetProperty(self.object, i, v)
+			end)
+		elseif string.split(i, ":")[1] == "SpecialCharacter_Event" then
+			local eventName = string.split(i, ":")[2]
+			local archivable = string.split(i, ":")[3] == "true" and true
+			self.SavedProperties[i] = archivable and v or nil
+			self.object[eventName]:Connect(function(...)
+				v(self.object, ...)
 			end)
 		else
 			SetProperty(self.object, i, v)
@@ -47,16 +60,31 @@ function handlerClass:Render(properties: {})
 	return self.object
 end
 
+function module.clone(referenceObject: Instance)
+	local reference = memory[referenceObject]
+	local newHandler = setmetatable({ object = reference.object:Clone() }, module)
+
+	memory[newHandler.object] = newHandler
+	newHandler:Render(reference.SavedProperties)
+
+	return newHandler
+end
+
 function module.new(className: string)
 	local object = Instance.new(className)
 	local handler = setmetatable({ object = object }, module)
 
+	memory[object] = handler
 	handler:Render(defaultProperties)
 
 	return handler
 end
 
-function module.value<t>(value: t)
+function module.Event(eventName: string, archivable: boolean)
+	return `SpecialCharacter_Event:{eventName}:{tostring(archivable)}`
+end
+
+function module.Value<t>(value: t)
 	local t = {
 		value = value,
 		onChanged = Signal.new(),

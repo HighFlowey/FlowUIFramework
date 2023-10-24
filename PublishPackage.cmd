@@ -1,0 +1,1 @@
+wally publish --project-path "src"
