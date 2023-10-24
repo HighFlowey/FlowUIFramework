@@ -1,103 +1,17 @@
-local Packages = script.Parent
-local Signal = require(Packages:WaitForChild("signal"))
+local Signal = require(script.Parent.Signal)
 
-local SPECIAL_CHARACTER_KEY = "SPCR"
-local OUTPUT = false
-
-local memory = {}
 local module = {}
-module.Init = `{SPECIAL_CHARACTER_KEY}:Init`
-module.Children = `{SPECIAL_CHARACTER_KEY}:Children`
-module.Merge = `{SPECIAL_CHARACTER_KEY}:Merge`
-module.Connect = `{SPECIAL_CHARACTER_KEY}:Connect`
-module.Once = `{SPECIAL_CHARACTER_KEY}:Once`
+module.Init = "0"
+module.Children = "1"
+module.Merge = "2"
+module.Connect = "3"
+module.Once = "4"
 
 local DEFAULT_PROPERTIES = {
 	["TextScaled"] = true,
 	["BorderSizePixel"] = 0,
 	["Size"] = UDim2.fromOffset(200, 150),
 }
-
-local function SetProperty(t: Class, i: any, v: any)
-	local indexInfo = string.split(i, ":")
-
-	if t.connections[i] then
-		t.connections[i]:Disconnect()
-		t.connections[i] = nil
-	end
-
-	if indexInfo[1] == SPECIAL_CHARACTER_KEY then
-		if indexInfo[2] == "Merge" then
-			for property, value in v do
-				SetProperty(t, property, value)
-			end
-
-			return true
-		elseif indexInfo[2] == "Children" then
-			for _, obj: Instance in v do
-				local handler = memory[obj]
-				if handler and handler.create then
-					local newHandler = memory[obj].create()
-					newHandler.obj.Parent = t.obj
-				else
-					obj.Parent = t.obj
-				end
-			end
-
-			return true
-		elseif indexInfo[2] == "Connect" or indexInfo[2] == "Once" then
-			local c: RBXScriptConnection
-
-			c = t.obj[indexInfo[3]]:Connect(function(...)
-				if indexInfo[2] == "Once" then
-					c:Disconnect()
-				end
-
-				v(t, ...)
-			end)
-
-			t.connections[i] = c
-
-			if indexInfo[4] == "true" then
-				return true
-			end
-		elseif indexInfo[2] == "Init" then
-			t.init = v
-
-			if indexInfo[3] == "true" then
-				return true
-			end
-		end
-	elseif typeof(v) == "userdata" and v.value then
-		local success, msg = pcall(function()
-			t.obj[i] = v.value
-		end)
-
-		if success then
-			local c: RBXScriptConnection
-
-			c = v.updated:Connect(function(newValue)
-				t.obj[i] = newValue
-			end)
-
-			t.connections[i] = c
-
-			return true
-		elseif OUTPUT then
-			warn(`Failed to set {t.obj}'s property({i}) to {v}`, msg)
-		end
-	else
-		local success, msg = pcall(function()
-			t.obj[i] = v
-		end)
-
-		if success then
-			return true
-		elseif OUTPUT then
-			warn(`Failed to set {t.obj}'s property({i}) to {v}`, msg)
-		end
-	end
-end
 
 function module.key(v: any): Key
 	local proxy = newproxy(true)
@@ -124,47 +38,78 @@ function module.key(v: any): Key
 	return proxy
 end
 
-function module.new(className: string, startingProperties: {}): Class
+function module.new(className: string): Class
 	local class = {}
-	class.connections = {}
-	class.transfer = {}
 	class.obj = Instance.new(className)
-	memory[class.obj] = class
+	class.changes = {}
+	class.className = className
 
-	function class:Render(properties: {})
-		for i, v in properties do
-			local transfer = SetProperty(self, i, v)
+	function class:Render(list: {}, archivable: boolean, _cloned: boolean)
+		archivable = if archivable ~= nil then archivable else true
 
-			if string.split(i, ":")[2] == "Init" then
-				task.defer(v, self)
+		for i, v in list do
+			local info = string.split(i, " ")
+
+			if archivable then
+				class.changes[i] = v
 			end
 
-			if self.transfer and transfer then
-				self.transfer[i] = v
+			if info[1] == module.Connect or info[1] == module.Once then
+				local c: RBXScriptConnection
+
+				c = self.obj[info[2]]:Connect(function(...)
+					if info[1] == module.Once then
+						c:Disconnect()
+					end
+
+					v(self, ...)
+				end)
+			elseif info[1] == module.Init then
+				task.defer(v, self)
+			elseif info[1] == module.Merge then
+				for i, v in v do
+					v.obj.Parent = self.obj
+				end
+			elseif info[1] == module.Children then
+				for i, v: Class in v do
+					if _cloned then
+						v:Clone():Render({ Parent = self.obj })
+					else
+						v:Render({ Parent = self.obj })
+					end
+				end
+			elseif typeof(v) == "userdata" then
+				self.obj[i] = v.value
+
+				local c = v.updated:Connect(function(newValue)
+					self.obj[i] = newValue
+				end)
+			else
+				local success = pcall(function()
+					self.obj[i] = v
+				end)
 			end
 		end
 
-		return self.obj
+		return self
 	end
 
-	function class:Create(): Class
-		return module.new(self.obj.ClassName, self.transfer)
+	function class:Clone()
+		return module.new(self.className):Render(self.changes, true, true)
 	end
 
 	class:Render(DEFAULT_PROPERTIES)
-
-	if startingProperties then
-		class:Render(startingProperties)
-	end
 
 	return class
 end
 
 export type Class = {
 	obj: Instance,
-	Render: (Class, properties: {}) -> (),
-	create: (Class) -> (),
+	className: string,
+	Render: (self: Class, list: {}) -> Class,
+	Clone: (self: Class) -> Class,
 }
+
 export type Key = {
 	value: any,
 	updated: Signal.Signal,

@@ -31,7 +31,7 @@ local function HoverEnd(self, size: UDim2)
 end
 
 local templates = {
-	Button = module.new("TextButton", {
+	Button = module.new("TextButton"):Render({
 		BackgroundColor3 = theme.Button0,
 		TextColor3 = theme.Text,
 		Size = UDim2.fromScale(1, 0.1),
@@ -49,12 +49,11 @@ local templates = {
 			HoverEnd(self, UDim2.fromScale(1, 0.1))
 		end,
 	}),
-	ScrollingFrame = module.new("ScrollingFrame", {
+	ScrollingFrame = module.new("ScrollingFrame"):Render({
 		AutomaticCanvasSize = Enum.AutomaticSize.Y,
 		ScrollBarThickness = 8,
 		CanvasSize = UDim2.fromScale(0, 0),
 		AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.5),
 		Size = UDim2.fromScale(0.3, 0.5),
 		[module.Children] = {
 			module.new("UIListLayout"):Render({}),
@@ -65,25 +64,20 @@ local templates = {
 	}),
 }
 
-module.new("ScreenGui"):Render({
+module.new("ScreenGui", {
 	ResetOnSpawn = false,
 	Parent = Players.LocalPlayer.PlayerGui,
 	[module.Children] = {
 		templates.ScrollingFrame:Create():Render({
+			Position = UDim2.fromScale(0.35, 0.5),
 			[module.Children] = {
 				templates.Button:Create():Render({}),
 				templates.Button:Create():Render({}),
-				templates.Button:Create():Render({}),
-				templates.Button:Create():Render({}),
-				templates.Button:Create():Render({}),
-				templates.Button:Create():Render({}),
-				templates.Button:Create():Render({}),
-				templates.Button:Create():Render({}),
-				templates.Button:Create():Render({}),
-				templates.Button:Create():Render({}),
-				templates.Button:Create():Render({}),
-				templates.Button:Create():Render({}),
-				templates.Button:Create():Render({}),
+			},
+		}),
+		templates.ScrollingFrame:Create():Render({
+			Position = UDim2.fromScale(0.65, 0.5),
+			[module.Children] = {
 				templates.Button:Create():Render({}),
 				templates.Button:Create():Render({}),
 			},
