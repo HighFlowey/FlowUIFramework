@@ -1,0 +1,1 @@
+rojo build -o FlowUIFramework.rbxm flowuiframework.project.json
