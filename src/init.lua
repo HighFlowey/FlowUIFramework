@@ -163,7 +163,7 @@ end
 export type Class = {
 	obj: Instance,
 	Render: (Class, properties: {}) -> (),
-	create: () -> (),
+	create: (Class) -> (),
 }
 export type Key = {
 	value: any,
