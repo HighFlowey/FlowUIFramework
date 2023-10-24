@@ -1,4 +1,4 @@
-local Signal = require(script.Parent.Signal)
+local Signal = require(script.Parent.signal)
 
 local module = {}
 module.Init = "0"
