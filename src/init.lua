@@ -8,6 +8,7 @@ module.Merge = "SpecialCharacter_Merge"
 
 local handlerClass = {}
 handlerClass.SavedProperties = {}
+handlerClass.Connections = {}
 module.__index = handlerClass
 
 local defaultProperties = {
@@ -46,12 +47,21 @@ function handlerClass:Render(properties: {})
 				SetProperty(self.object, i, v)
 			end)
 		elseif string.split(i, ":")[1] == "SpecialCharacter_Event" then
-			local eventName = string.split(i, ":")[2]
-			local archivable = string.split(i, ":")[3] == "true" and true
+			local info = string.split(i, ":")
+			local eventName = info[2]
+			local eventMethod = info[3]
+			local archivable = info[4] == "true" and true
 			self.SavedProperties[i] = archivable and v or nil
-			self.object[eventName]:Connect(function(...)
-				v(self.object, ...)
-			end)
+
+			if eventMethod == "Connect" then
+				self.object[eventName]:Connect(function(...)
+					v(self.object, ...)
+				end)
+			elseif eventMethod == "Once" then
+				self.object[eventName]:Once(function(...)
+					v(self.object, ...)
+				end)
+			end
 		else
 			SetProperty(self.object, i, v)
 		end
@@ -80,8 +90,12 @@ function module.new(className: string)
 	return handler
 end
 
-function module.Event(eventName: string, archivable: boolean)
-	return `SpecialCharacter_Event:{eventName}:{tostring(archivable)}`
+function module.Connect(eventName: string, archivable: boolean)
+	return `SpecialCharacter_Event:{eventName}:Connect:{tostring(archivable)}`
+end
+
+function module.Once(eventName: string, archivable: boolean)
+	return `SpecialCharacter_Event:{eventName}:Once:{tostring(archivable)}`
 end
 
 function module.Value<t>(value: t)
