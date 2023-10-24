@@ -9,9 +9,9 @@ local template = module.new("TextLabel")
 template:Render({
 	["BackgroundColor3"] = color,
 	["TextColor3"] = Color3.fromRGB(255, 255, 255),
-	["TextScaled"] = true,
 	["Size"] = UDim2.fromOffset(100, 50),
 	["Font"] = Enum.Font.ArialBold,
+	["Text"] = text,
 	[module.Once .. ":MouseEnter:true"] = function(self)
 		self:Render({
 			["Transparency"] = self.obj.Transparency + 0.5,
@@ -19,7 +19,20 @@ template:Render({
 			["Text"] = "Yiouch!",
 		})
 	end,
-	["Text"] = text,
+	[module.Children] = {
+		module.new("Frame"):Render({
+			["Position"] = UDim2.fromScale(0, 1),
+			["Size"] = UDim2.fromScale(1, 1),
+			[module.Init .. ":true"] = function(self)
+				while true do
+					self.obj.Size += UDim2.fromOffset(10, 10)
+					task.wait(1)
+					self.obj.Size -= UDim2.fromOffset(10, 10)
+					task.wait(1)
+				end
+			end,
+		}),
+	},
 })
 
 module.new("ScreenGui"):Render({

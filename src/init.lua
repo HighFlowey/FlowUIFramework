@@ -1,11 +1,20 @@
 local Signal = require(script.Packages.signal)
 
 local SPECIAL_CHARACTER_KEY = "SPCR"
+local OUTPUT = false
+
+local memory = {}
 local module = {}
+module.Init = `{SPECIAL_CHARACTER_KEY}:Init`
 module.Children = `{SPECIAL_CHARACTER_KEY}:Children`
 module.Merge = `{SPECIAL_CHARACTER_KEY}:Merge`
 module.Connect = `{SPECIAL_CHARACTER_KEY}:Connect`
 module.Once = `{SPECIAL_CHARACTER_KEY}:Once`
+
+local DEFAULT_PROPERTIES = {
+	["TextScaled"] = true,
+	["BorderSizePixel"] = 0,
+}
 
 local function SetProperty(t: Template, i: any, v: any)
 	local indexInfo = string.split(i, ":")
@@ -24,7 +33,13 @@ local function SetProperty(t: Template, i: any, v: any)
 			return true
 		elseif indexInfo[2] == "Children" then
 			for _, obj: Instance in v do
-				obj.Parent = t.obj
+				local handler = memory[obj]
+				if handler and handler.create then
+					local newHandler = memory[obj].create()
+					newHandler.obj.Parent = t.obj
+				else
+					obj.Parent = t.obj
+				end
 			end
 
 			return true
@@ -44,6 +59,12 @@ local function SetProperty(t: Template, i: any, v: any)
 			if indexInfo[4] == "true" then
 				return true
 			end
+		elseif indexInfo[2] == "Init" then
+			t.init = v
+
+			if indexInfo[3] == "true" then
+				return true
+			end
 		end
 	elseif typeof(v) == "userdata" and v.value then
 		local success, msg = pcall(function()
@@ -60,7 +81,7 @@ local function SetProperty(t: Template, i: any, v: any)
 			t.connections[i] = c
 
 			return true
-		else
+		elseif OUTPUT then
 			warn(`Failed to set {t.obj}'s property({i}) to {v}`, msg)
 		end
 	else
@@ -70,7 +91,7 @@ local function SetProperty(t: Template, i: any, v: any)
 
 		if success then
 			return true
-		else
+		elseif OUTPUT then
 			warn(`Failed to set {t.obj}'s property({i}) to {v}`, msg)
 		end
 	end
@@ -106,10 +127,15 @@ function module.new(className: string): Template
 	template.connections = {}
 	template.transfer = {}
 	template.obj = Instance.new(className)
+	memory[template.obj] = template
 
 	function template:Render(properties: {})
 		for i, v in properties do
 			local transfer = SetProperty(self, i, v)
+
+			if string.split(i, ":")[2] == "Init" then
+				task.defer(v, self)
+			end
 
 			if self.transfer and transfer then
 				self.transfer[i] = v
@@ -123,12 +149,15 @@ function module.new(className: string): Template
 		local handler = {}
 		handler.connections = {}
 		handler.obj = Instance.new(className)
+		memory[handler.obj] = handler
 
 		handler.Render = template.Render
 		handler:Render(template.transfer)
 
 		return handler
 	end
+
+	template:Render(DEFAULT_PROPERTIES)
 
 	return template
 end
