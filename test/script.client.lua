@@ -1,59 +1,94 @@
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 
 local module = require(ReplicatedStorage.FlowUIFramework)
-local text = module.key("lol")
-local color = module.key(Color3.fromRGB(243, 51, 51))
-local template = module.new("TextLabel")
 
-template:Render({
-	["BackgroundColor3"] = color,
-	["TextColor3"] = Color3.fromRGB(255, 255, 255),
-	["Size"] = UDim2.fromOffset(100, 50),
-	["Font"] = Enum.Font.ArialBold,
-	["Text"] = text,
-	[module.Once .. ":MouseEnter:true"] = function(self)
-		self:Render({
-			["Transparency"] = self.obj.Transparency + 0.5,
-			["BackgroundColor3"] = self.obj.BackgroundColor3,
-			["Text"] = "Yiouch!",
-		})
+local text = module.key("Button")
+local theme = {
+	background0 = module.key(Color3.fromRGB(190, 2, 2)),
+	background1 = module.key(Color3.fromRGB(208, 42, 42)),
+	Text = module.key(Color3.fromRGB(255, 255, 255)),
+	Button0 = module.key(Color3.fromRGB(208, 42, 42)),
+	Button1 = module.key(Color3.fromRGB(190, 2, 2)),
+}
+
+local templates = {
+	Button = module.new("TextButton"),
+	ScrollingFrame = module.new("ScrollingFrame"),
+}
+
+templates.Button:Render({
+	BackgroundColor3 = theme.Button0,
+	TextColor3 = theme.Text,
+	Size = UDim2.fromScale(1, 0.1),
+	Text = text,
+	[module.Connect .. ":Activated:true"] = function(self)
+		if self.obj.Text == "Button" then
+			self:Render({
+				Text = "😈😈😈",
+			})
+		else
+			self:Render({
+				Text = "Button",
+			})
+		end
 	end,
+	[module.Connect .. ":MouseEnter:true"] = function(self)
+		local goal = { Size = UDim2.fromScale(1, 0.1) + UDim2.fromOffset(10, 10) }
+		local tween = TweenService:Create(self.obj, TweenInfo.new(0.25), goal)
+		tween:Play()
+		tween.Completed:Connect(function()
+			tween:Destroy()
+		end)
+	end,
+	[module.Connect .. ":MouseLeave:true"] = function(self)
+		local goal = { Size = UDim2.fromScale(1, 0.1) }
+		local tween = TweenService:Create(self.obj, TweenInfo.new(0.25), goal)
+		tween:Play()
+		tween.Completed:Connect(function()
+			tween:Destroy()
+		end)
+	end,
+})
+
+templates.ScrollingFrame:Render({
+	AutomaticCanvasSize = Enum.AutomaticSize.Y,
+	ScrollBarThickness = 8,
+	CanvasSize = UDim2.fromScale(0, 0),
+	AnchorPoint = Vector2.new(0.5, 0.5),
+	Position = UDim2.fromScale(0.5, 0.5),
+	Size = UDim2.fromScale(0.3, 0.5),
 	[module.Children] = {
-		module.new("Frame"):Render({
-			["Position"] = UDim2.fromScale(0, 1),
-			["Size"] = UDim2.fromScale(1, 1),
-			[module.Init .. ":true"] = function(self)
-				while true do
-					self.obj.Size += UDim2.fromOffset(10, 10)
-					task.wait(1)
-					self.obj.Size -= UDim2.fromOffset(10, 10)
-					task.wait(1)
-				end
-			end,
+		module.new("UIListLayout"):Render({}),
+		module.new("UIPadding"):Render({
+			PaddingRight = UDim.new(0, 8),
 		}),
 	},
 })
 
 module.new("ScreenGui"):Render({
-	["ResetOnSpawn"] = false,
-	["Parent"] = Players.LocalPlayer.PlayerGui,
+	ResetOnSpawn = false,
+	Parent = Players.LocalPlayer.PlayerGui,
 	[module.Children] = {
-		template.create():Render({}),
-		template.create():Render({
-			Position = UDim2.fromOffset(template.obj.Size.X.Offset + 5),
-		}),
-		template.create():Render({
-			Position = UDim2.fromOffset(template.obj.Size.X.Offset * 2 + 10),
+		templates.ScrollingFrame.create():Render({
+			[module.Children] = {
+				templates.Button.create():Render({}),
+				templates.Button.create():Render({}),
+				templates.Button.create():Render({}),
+				templates.Button.create():Render({}),
+				templates.Button.create():Render({}),
+				templates.Button.create():Render({}),
+				templates.Button.create():Render({}),
+				templates.Button.create():Render({}),
+				templates.Button.create():Render({}),
+				templates.Button.create():Render({}),
+				templates.Button.create():Render({}),
+				templates.Button.create():Render({}),
+				templates.Button.create():Render({}),
+				templates.Button.create():Render({}),
+				templates.Button.create():Render({}),
+			},
 		}),
 	},
 })
-
-while true do
-	task.wait(2)
-	text.value = "NONONO"
-	color.value = Color3.fromRGB(51, 189, 243)
-	task.wait(2)
-	text.value = "YES"
-	color.value = Color3.fromRGB(243, 51, 51)
-end
