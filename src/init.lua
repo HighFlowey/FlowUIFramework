@@ -1,126 +1,146 @@
 local Signal = require(script.Packages.signal)
 
-local memory = {}
+local SPECIAL_CHARACTER_KEY = "SPCR"
 local module = {}
-module.Reference = "SpecialCharacter_Reference"
-module.Children = "SpecialCharacter_Children"
-module.Merge = "SpecialCharacter_Merge"
+module.Children = `{SPECIAL_CHARACTER_KEY}:Children`
+module.Merge = `{SPECIAL_CHARACTER_KEY}:Merge`
+module.Connect = `{SPECIAL_CHARACTER_KEY}:Connect`
+module.Once = `{SPECIAL_CHARACTER_KEY}:Once`
 
-local handlerClass = {}
-handlerClass.SavedProperties = {}
-handlerClass.Connections = {}
-module.__index = handlerClass
+local function SetProperty(t: Template, i: any, v: any)
+	local indexInfo = string.split(i, ":")
 
-local defaultProperties = {
-	["TextScaled"] = true,
-	["Size"] = UDim2.fromOffset(100, 50),
-}
-
-local function SetProperty(object: Instance, property: string, value: any)
-	if typeof(value) == "userdata" and value.value then
-		-- this value is made by using the module.Value function
-		object[property] = value.value
-		memory[object].SavedProperties[property] = value
-		value.onChanged:Connect(function(newValue)
-			object[property] = newValue
-		end)
-	else
-		-- could be a normal roblox property
-		local _ = pcall(function()
-			object[property] = value
-		end)
+	if t.connections[i] then
+		t.connections[i]:Disconnect()
+		t.connections[i] = nil
 	end
-end
 
-function handlerClass:Render(properties: {})
-	for i, v in properties do
-		if i == module.Children then
-			for _, child: Instance in v do
-				child.Parent = self.object
+	if indexInfo[1] == SPECIAL_CHARACTER_KEY then
+		if indexInfo[2] == "Merge" then
+			for property, value in v do
+				SetProperty(t, property, value)
 			end
-		elseif i == module.Merge then
-			self:Render(v)
-		elseif i == module.Reference then
-			v.value = self.object
-		elseif i == "Parent" then
-			task.defer(function()
-				SetProperty(self.object, i, v)
+
+			return true
+		elseif indexInfo[2] == "Children" then
+			for _, obj: Instance in v do
+				obj.Parent = t.obj
+			end
+
+			return true
+		elseif indexInfo[2] == "Connect" or indexInfo[2] == "Once" then
+			local c: RBXScriptConnection
+
+			c = t.obj[indexInfo[3]]:Connect(function(...)
+				if indexInfo[2] == "Once" then
+					c:Disconnect()
+				end
+
+				v(t, ...)
 			end)
-		elseif string.split(i, ":")[1] == "SpecialCharacter_Event" then
-			local info = string.split(i, ":")
-			local eventName = info[2]
-			local eventMethod = info[3]
-			local archivable = info[4] == "true" and true
-			self.SavedProperties[i] = archivable and v or nil
 
-			if eventMethod == "Connect" then
-				self.object[eventName]:Connect(function(...)
-					v(self.object, ...)
-				end)
-			elseif eventMethod == "Once" then
-				self.object[eventName]:Once(function(...)
-					v(self.object, ...)
-				end)
+			t.connections[i] = c
+
+			if indexInfo[4] == "true" then
+				return true
 			end
+		end
+	elseif typeof(v) == "userdata" and v.value then
+		local success, msg = pcall(function()
+			t.obj[i] = v.value
+		end)
+
+		if success then
+			local c: RBXScriptConnection
+
+			c = v.updated:Connect(function(newValue)
+				t.obj[i] = newValue
+			end)
+
+			t.connections[i] = c
+
+			return true
 		else
-			SetProperty(self.object, i, v)
+			warn(`Failed to set {t.obj}'s property({i}) to {v}`, msg)
+		end
+	else
+		local success, msg = pcall(function()
+			t.obj[i] = v
+		end)
+
+		if success then
+			return true
+		else
+			warn(`Failed to set {t.obj}'s property({i}) to {v}`, msg)
 		end
 	end
-
-	return self.object
 end
 
-function module.clone(referenceObject: Instance)
-	local reference = memory[referenceObject]
-	local newHandler = setmetatable({ object = reference.object:Clone() }, module)
-
-	memory[newHandler.object] = newHandler
-	newHandler:Render(reference.SavedProperties)
-
-	return newHandler
-end
-
-function module.new(className: string)
-	local object = Instance.new(className)
-	local handler = setmetatable({ object = object }, module)
-
-	memory[object] = handler
-	handler:Render(defaultProperties)
-
-	return handler
-end
-
-function module.Connect(eventName: string, archivable: boolean)
-	return `SpecialCharacter_Event:{eventName}:Connect:{tostring(archivable)}`
-end
-
-function module.Once(eventName: string, archivable: boolean)
-	return `SpecialCharacter_Event:{eventName}:Once:{tostring(archivable)}`
-end
-
-function module.Value<t>(value: t)
+function module.key(v: any): Key
+	local proxy = newproxy(true)
+	local meta = getmetatable(proxy)
 	local t = {
-		value = value,
-		onChanged = Signal.new(),
+		value = v,
+		updated = Signal.new(),
 	}
 
-	local self: { value: t, onChanged: Signal.Signal } = newproxy(true)
-	local meta = getmetatable(self)
 	meta.__index = t
-	meta.__newindex = function(_, i, v)
+	meta.__newindex = function(_, i, value)
 		if i ~= "value" then
 			return
 		end
 
-		if t.value == v then
+		if t[i] == value then
 			return
 		end
 
-		t.value = v
-		t.onChanged:Fire(v)
+		t[i] = value
+		t.updated:Fire(value)
 	end
 
-	return self
+	return proxy
 end
+
+function module.new(className: string): Template
+	local template = {}
+	template.connections = {}
+	template.transfer = {}
+	template.obj = Instance.new(className)
+
+	function template:Render(properties: {})
+		for i, v in properties do
+			local transfer = SetProperty(self, i, v)
+
+			if self.transfer and transfer then
+				self.transfer[i] = v
+			end
+		end
+
+		return self.obj
+	end
+
+	function template.create()
+		local handler = {}
+		handler.connections = {}
+		handler.obj = Instance.new(className)
+
+		handler.Render = template.Render
+		handler:Render(template.transfer)
+
+		return handler
+	end
+
+	return template
+end
+
+export type Template = {
+	obj: Instance,
+	Render: (Template, properties: {}) -> (),
+	create: () -> (),
+}
+export type Key = {
+	value: any,
+	updated: Signal.Signal,
+}
 
 return module

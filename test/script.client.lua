@@ -2,58 +2,45 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local module = require(ReplicatedStorage.FlowUIFramework)
-local Reference = module.Reference
-local Children = module.Children
-local Connect = module.Event
-local Merge = module.Merge
-local Value = module.Value
-local Once = module.Once
+local text = module.key("lol")
+local color = module.key(Color3.fromRGB(243, 51, 51))
+local template = module.new("TextLabel")
 
-local text = Value("Hi Hi Hi !!!") -- will automatically update properties when changed
-local textlabelPreset = {
-	["BackgroundColor3"] = Color3.fromRGB(113, 0, 0),
+template:Render({
+	["BackgroundColor3"] = color,
 	["TextColor3"] = Color3.fromRGB(255, 255, 255),
+	["TextScaled"] = true,
 	["Size"] = UDim2.fromOffset(100, 50),
-}
-
-local textlabelTemplate = module.new("TextLabel"):Render({
-	[Merge] = textlabelPreset, -- apply properties from a table
-	["Name"] = "TemplateTextLabel",
-	["Text"] = text, -- autoupdate works for cloned objects aswell
-	[Connect("MouseEnter", true)] = function(self) -- event applies to cloned objects because of the second argument
-		self.Size = self.Size + UDim2.fromOffset(15, 15)
+	["Font"] = Enum.Font.ArialBold,
+	[module.Once .. ":MouseEnter:true"] = function(self)
+		self:Render({
+			["Transparency"] = self.obj.Transparency + 0.5,
+			["BackgroundColor3"] = self.obj.BackgroundColor3,
+			["Text"] = "Yiouch!",
+		})
 	end,
-	[Connect("MouseLeave", true)] = function(self)
-		self.Size = self.Size - UDim2.fromOffset(15, 15)
-	end,
-	[Once("MouseWheelForward", true)] = function(self)
-		self.Transparency += 0.5
-	end,
+	["Text"] = text,
 })
 
-local textlabel = Value()
-local screenGui: ScreenGui = module.new("ScreenGui"):Render({
-	["Name"] = "GUI",
+module.new("ScreenGui"):Render({
 	["ResetOnSpawn"] = false,
-	[Children] = {
-		module.clone(textlabelTemplate):Render({
-			[Reference] = textlabel,
-			["Name"] = "TestTextLabel_1",
+	["Parent"] = Players.LocalPlayer.PlayerGui,
+	[module.Children] = {
+		template.create():Render({}),
+		template.create():Render({
+			Position = UDim2.fromOffset(template.obj.Size.X.Offset + 5),
 		}),
-		module.clone(textlabelTemplate):Render({
-			["Name"] = "TestTextLabel_2",
-			["Position"] = UDim2.fromOffset(textlabel.value.Size.X.Offset + 5, 0),
+		template.create():Render({
+			Position = UDim2.fromOffset(template.obj.Size.X.Offset * 2 + 10),
 		}),
 	},
 })
 
-print(textlabel.value) -- TestTextLabel_1
-
-screenGui.Parent = Players.LocalPlayer.PlayerGui
-
 while true do
-	text.value = "LOL!"
-	task.wait(5)
-	text.value = "UH HUH!"
-	task.wait(5)
+	task.wait(2)
+	text.value = "NONONO"
+	color.value = Color3.fromRGB(51, 189, 243)
+	task.wait(2)
+	text.value = "YES"
+	color.value = Color3.fromRGB(243, 51, 51)
 end
