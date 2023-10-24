@@ -2,7 +2,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
-local module = require(ReplicatedStorage.FlowUIFramework)
+local module = require(ReplicatedStorage.Packages.Flowuiframework)
 
 local theme = {
 	background0 = module.key(Color3.fromRGB(190, 2, 2)),
@@ -36,16 +36,16 @@ local templates = {
 		TextColor3 = theme.Text,
 		Size = UDim2.fromScale(1, 0.1),
 		Text = "Button",
-		[module.Connect .. ":Activated:true"] = function(self)
+		[module.Connect .. " Activated"] = function(self)
 			local newText = self.obj.Text == "Button" and "😈😈😈" or "Button"
 			self:Render({
 				Text = newText,
 			})
 		end,
-		[module.Connect .. ":MouseEnter:true"] = function(self)
+		[module.Connect .. " MouseEnter"] = function(self)
 			HoverStart(self, UDim2.fromScale(1, 0.1))
 		end,
-		[module.Connect .. ":MouseLeave:true"] = function(self)
+		[module.Connect .. " MouseLeave"] = function(self)
 			HoverEnd(self, UDim2.fromScale(1, 0.1))
 		end,
 	}),
@@ -64,22 +64,22 @@ local templates = {
 	}),
 }
 
-module.new("ScreenGui", {
+module.new("ScreenGui"):Render({
 	ResetOnSpawn = false,
 	Parent = Players.LocalPlayer.PlayerGui,
 	[module.Children] = {
-		templates.ScrollingFrame:Create():Render({
+		templates.ScrollingFrame:Clone():Render({
 			Position = UDim2.fromScale(0.35, 0.5),
 			[module.Children] = {
-				templates.Button:Create():Render({}),
-				templates.Button:Create():Render({}),
+				templates.Button:Clone():Render({}),
+				templates.Button:Clone():Render({}),
 			},
 		}),
-		templates.ScrollingFrame:Create():Render({
+		templates.ScrollingFrame:Clone():Render({
 			Position = UDim2.fromScale(0.65, 0.5),
 			[module.Children] = {
-				templates.Button:Create():Render({}),
-				templates.Button:Create():Render({}),
+				templates.Button:Clone():Render({}),
+				templates.Button:Clone():Render({}),
 			},
 		}),
 	},
