@@ -1,4 +1,5 @@
-local Signal = require(script.Parent.signal)
+local Packages = script.Parent
+local Signal = require(Packages:WaitForChild("signal"))
 
 local SPECIAL_CHARACTER_KEY = "SPCR"
 local OUTPUT = false
@@ -17,7 +18,7 @@ local DEFAULT_PROPERTIES = {
 	["Size"] = UDim2.fromOffset(200, 150),
 }
 
-local function SetProperty(t: Template, i: any, v: any)
+local function SetProperty(t: Class, i: any, v: any)
 	local indexInfo = string.split(i, ":")
 
 	if t.connections[i] then
@@ -123,14 +124,14 @@ function module.key(v: any): Key
 	return proxy
 end
 
-function module.new(className: string): Template
-	local template = {}
-	template.connections = {}
-	template.transfer = {}
-	template.obj = Instance.new(className)
-	memory[template.obj] = template
+function module.new(className: string, startingProperties: {}): Class
+	local class = {}
+	class.connections = {}
+	class.transfer = {}
+	class.obj = Instance.new(className)
+	memory[class.obj] = class
 
-	function template:Render(properties: {})
+	function class:Render(properties: {})
 		for i, v in properties do
 			local transfer = SetProperty(self, i, v)
 
@@ -146,26 +147,22 @@ function module.new(className: string): Template
 		return self.obj
 	end
 
-	function template.create()
-		local handler = {}
-		handler.connections = {}
-		handler.obj = Instance.new(className)
-		memory[handler.obj] = handler
-
-		handler.Render = template.Render
-		handler:Render(template.transfer)
-
-		return handler
+	function class:Create(): Class
+		return module.new(self.obj.ClassName, self.transfer)
 	end
 
-	template:Render(DEFAULT_PROPERTIES)
+	class:Render(DEFAULT_PROPERTIES)
 
-	return template
+	if startingProperties then
+		class:Render(startingProperties)
+	end
+
+	return class
 end
 
-export type Template = {
+export type Class = {
 	obj: Instance,
-	Render: (Template, properties: {}) -> (),
+	Render: (Class, properties: {}) -> (),
 	create: () -> (),
 }
 export type Key = {
