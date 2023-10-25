@@ -4,4 +4,5 @@ return {
 	Merge = "2",
 	Connect = "3",
 	Once = "4",
+	Reference = "5",
 }

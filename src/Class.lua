@@ -20,7 +20,7 @@ function class:Render(list: {}, archivable: boolean)
 				for _, original in v do
 					table.insert(self.changes.children, original)
 				end
-			else
+			elseif info[1] ~= Identifiers.Reference then
 				self.changes.any[i] = v
 			end
 		end
@@ -61,6 +61,8 @@ function class:Render(list: {}, archivable: boolean)
 			end
 
 			self.connections[i] = c
+		elseif info[1] == Identifiers.Reference then
+			v.value = self
 		else
 			local success = pcall(function()
 				self.obj[i] = v
