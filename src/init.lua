@@ -38,69 +38,75 @@ function module.key(v: any): Key
 	return proxy
 end
 
-function module.new(className: string): Class
-	local class = {}
-	class.obj = Instance.new(className)
-	class.changes = {}
-	class.className = className
+local class = {}
+class.obj = nil
+class.changes = {}
+class.className = nil
+module.__index = class
 
-	function class:Render(list: {}, archivable: boolean, _cloned: boolean)
-		archivable = if archivable ~= nil then archivable else true
+function class:Render(list: {}, archivable: boolean, _cloned: boolean)
+	archivable = if archivable ~= nil then archivable else true
 
-		for i, v in list do
-			local info = string.split(i, " ")
+	for i, v in list do
+		local info = string.split(i, " ")
 
-			if archivable then
-				class.changes[i] = v
-			end
-
-			if info[1] == module.Connect or info[1] == module.Once then
-				local c: RBXScriptConnection
-
-				c = self.obj[info[2]]:Connect(function(...)
-					if info[1] == module.Once then
-						c:Disconnect()
-					end
-
-					v(self, ...)
-				end)
-			elseif info[1] == module.Init then
-				task.defer(v, self)
-			elseif info[1] == module.Merge then
-				for i, v in v do
-					v.obj.Parent = self.obj
-				end
-			elseif info[1] == module.Children then
-				for i, v: Class in v do
-					if _cloned then
-						v:Clone():Render({ Parent = self.obj })
-					else
-						v:Render({ Parent = self.obj })
-					end
-				end
-			elseif typeof(v) == "userdata" then
-				self.obj[i] = v.value
-
-				local c = v.updated:Connect(function(newValue)
-					self.obj[i] = newValue
-				end)
-			else
-				local success = pcall(function()
-					self.obj[i] = v
-				end)
-			end
+		if archivable then
+			class.changes[i] = v
 		end
 
-		return self
+		if info[1] == module.Connect or info[1] == module.Once then
+			local c: RBXScriptConnection
+
+			c = self.obj[info[2]]:Connect(function(...)
+				if info[1] == module.Once then
+					c:Disconnect()
+				end
+
+				v(self, ...)
+			end)
+		elseif info[1] == module.Init then
+			task.defer(v, self)
+		elseif info[1] == module.Merge then
+			for i, v in v do
+				v.obj.Parent = self.obj
+			end
+		elseif info[1] == module.Children then
+			for i, v: Class in v do
+				if _cloned then
+					v:Clone():Render({ Parent = self.obj })
+				else
+					v:Render({ Parent = self.obj })
+				end
+			end
+		elseif typeof(v) == "userdata" then
+			self.obj[i] = v.value
+
+			local c = v.updated:Connect(function(newValue)
+				self.obj[i] = newValue
+			end)
+		else
+			local success = pcall(function()
+				self.obj[i] = v
+			end)
+		end
 	end
 
-	function class:Clone()
-		return module.new(self.className):Render(self.changes, true, true)
-	end
+	return self
+end
 
-	class:Render(DEFAULT_PROPERTIES)
+function class:Clone()
+	return module.new(self.className):Render(self.changes, true, true)
+end
 
-	return class
+function module.new(className: string): Class
+	local newClass = setmetatable({
+		obj = Instance.new(className),
+		className = className,
+	}, module)
+
+	newClass:Render(DEFAULT_PROPERTIES)
+
+	return newClass
 end
 
 export type Class = {
