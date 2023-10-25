@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkdocs=self.webpackChunkdocs||[]).push([[70],{27150:e=>{e.exports=JSON.parse('{"functions":[],"properties":[],"types":[],"name":"Identifier","desc":"Use these as [Properties] when using [Class:Render]","source":{"line":6,"path":"lib/docs.lua"}}')}}]);
