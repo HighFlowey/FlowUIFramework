@@ -5,6 +5,8 @@ local DEFAULT_PROPERTIES = {
 	["BorderSizePixel"] = 0,
 	["Size"] = UDim2.fromOffset(200, 150),
 	["SortOrder"] = Enum.SortOrder.LayoutOrder,
+	["BackgroundColor3"] = Color3.fromRGB(79, 79, 79),
+	["ScrollBarImageColor3"] = Color3.fromRGB(36, 36, 36),
 }
 
 local module = {}
