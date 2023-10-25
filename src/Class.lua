@@ -92,7 +92,7 @@ local classMeta = {
 	__index = class,
 }
 
-function module.new(className: string)
+function module.new(className: string): Class
 	local newClass = setmetatable({}, classMeta)
 	newClass.obj = Instance.new(className)
 	newClass.className = className
@@ -106,5 +106,12 @@ function module.new(className: string)
 
 	return newClass
 end
+
+export type Class = {
+	obj: Instance,
+	className: string,
+	Render: (self: Class, list: { [string]: any }, archivable: boolean) -> Class,
+	Clone: (self: Class) -> Class,
+}
 
 return module

@@ -29,16 +29,7 @@ function module.key(v: any): Key
 	return proxy
 end
 
-function module.new(...): Class
-	return Class.new(...)
-end
-
-export type Class = {
-	obj: Instance,
-	className: string,
-	Render: (self: Class, list: { [string]: any }, archivable: boolean) -> Class,
-	Clone: (self: Class) -> Class,
-}
+module.new = Class.new
 
 export type Key = {
 	value: any,
