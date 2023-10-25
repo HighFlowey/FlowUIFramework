@@ -64,9 +64,17 @@ function class:Render(list: {}, archivable: boolean)
 
 			self.connections[i] = c
 		else
-			local success = pcall(function()
-				self.obj[i] = v
-			end)
+			if typeof(v) == "table" then
+				for n, value in v do
+					local success = pcall(function()
+						self.obj[i][n] = value
+					end)
+				end
+			else
+				local success = pcall(function()
+					self.obj[i] = v
+				end)
+			end
 		end
 	end
 
