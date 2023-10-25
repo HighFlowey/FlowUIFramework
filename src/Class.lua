@@ -4,6 +4,7 @@ local DEFAULT_PROPERTIES = {
 	["TextScaled"] = true,
 	["BorderSizePixel"] = 0,
 	["Size"] = UDim2.fromOffset(200, 150),
+	["SortOrder"] = Enum.SortOrder.LayoutOrder,
 }
 
 local module = {}
