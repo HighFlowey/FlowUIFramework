@@ -44,7 +44,7 @@ function class:Render(list: {}, archivable: boolean)
 		elseif info[1] == Identifiers.Init then
 			task.defer(v, self)
 		elseif info[1] == Identifiers.Merge then
-			self:Render({ v })
+			self:Render(v)
 		elseif info[1] == Identifiers.Children then
 			for i, v in v do
 				v:Render({ Parent = self.obj })
