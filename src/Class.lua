@@ -49,6 +49,8 @@ function class:Render(list: {}, archivable: boolean)
 			for i, v in v do
 				v:Render({ Parent = self.obj })
 			end
+		elseif info[1] == Identifiers.Reference then
+			v.value = self
 		elseif typeof(v) == "userdata" then
 			self.obj[i] = v.value
 
@@ -61,8 +63,6 @@ function class:Render(list: {}, archivable: boolean)
 			end
 
 			self.connections[i] = c
-		elseif info[1] == Identifiers.Reference then
-			v.value = self
 		else
 			local success = pcall(function()
 				self.obj[i] = v
