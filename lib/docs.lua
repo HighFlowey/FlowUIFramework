@@ -1,5 +1,5 @@
 --[=[
-@class Identifier 
+@class Identifier
 
 Only usable in properties list
 ]=]
@@ -35,14 +35,14 @@ Only usable in properties list
 
 --[=[
 @function key
-@within Module 
+@within Module
 
 @param v any -- default value
 @return Key
 ]=]
 
 --[=[
-@class Key 
+@class Key
 
 When changed, it will automatically update the properties it's attached to
 ]=]
@@ -59,7 +59,7 @@ When changed, it will automatically update the properties it's attached to
 
 --[=[
 @function new
-@within Module 
+@within Module
 
 @param className string
 @return Class
@@ -76,16 +76,16 @@ When changed, it will automatically update the properties it's attached to
 
 --[=[
 @method Render
-@within Class 
+@within Class
 
-@param properties {} -- list of properties and identifiers
+@param properties {[string]: any} -- list of properties and identifiers
 @param archivable boolean -- list will not apply to clones if set to false (default is true)
 @return Class
 ]=]
 
 --[=[
 @method Clone
-@within Class 
+@within Class
 
 @return Class
 ]=]
