@@ -34,6 +34,11 @@ Only usable in properties list
 ]=]
 
 --[=[
+@prop Reference Identifier
+@within Module
+]=]
+
+--[=[
 @function key
 @within Module
 
