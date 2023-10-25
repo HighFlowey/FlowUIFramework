@@ -1,0 +1,19 @@
+{
+  "name": "test",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Packages": {
+        "$path": "src/Packages",
+        "Flowuiframework": {
+          "$path": "src"
+        }
+      }
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "$path": "test"
+      }
+    }
+  }
+}

@@ -67,6 +67,7 @@ local templates = {
 module.new("ScreenGui"):Render({
 	ResetOnSpawn = false,
 	Parent = Players.LocalPlayer.PlayerGui,
+	Name = "Test",
 	[module.Children] = {
 		templates.ScrollingFrame:Clone():Render({
 			Position = UDim2.fromScale(0.35, 0.5),
