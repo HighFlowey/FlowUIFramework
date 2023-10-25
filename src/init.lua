@@ -36,7 +36,7 @@ end
 export type Class = {
 	obj: Instance,
 	className: string,
-	Render: (self: Class, list: {}, archivable: boolean) -> Class,
+	Render: (self: Class, list: { [string]: any }, archivable: boolean) -> Class,
 	Clone: (self: Class) -> Class,
 }
 
