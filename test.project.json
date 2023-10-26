@@ -7,6 +7,9 @@
         "$path": "src/Packages",
         "Flowuiframework": {
           "$path": "src"
+        },
+        "TestEZ": {
+          "$path": "TestEZ"
         }
       }
     },

@@ -50,6 +50,7 @@ local templates = {
 		end,
 	}),
 	ScrollingFrame = module.new("ScrollingFrame"):Render({
+		BackgroundColor3 = theme.background0,
 		AutomaticCanvasSize = Enum.AutomaticSize.Y,
 		ScrollBarThickness = 8,
 		CanvasSize = UDim2.fromScale(0, 0),
