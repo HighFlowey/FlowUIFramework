@@ -80,7 +80,7 @@ Bind a function that gets called once [Class:Render] is finished
 Class:Render({
     Parent = StarterGui,
     [Module.Init] = function(self)
-        print(self.obj.Parent) -- StarterGui
+        print(self.Parent) -- StarterGui
     end
 })
 ```
@@ -100,7 +100,7 @@ Class:Render({
     [Module.Reference] = ref,
 })
 
-print(ref.obj) -- TestClass
+print(ref.value) -- TestClass
 ```
 ]=]
 
@@ -123,7 +123,7 @@ local text = Module.key("Testing")
 local class = Class:Render({
     Name = text,
     [Module.Init] = function(self)
-        print(self.obj.Name) -- Testing
+        print(self.Name) -- Testing
     end
 })
 
@@ -161,16 +161,31 @@ Fires automatically when [Key.value] is changed
 
 --[=[
 @class Class
-]=]
 
---[=[
-@type Properties {[string|Identifier]: any}
-@within Class
+Created by using [Module.new]
+This class holds all the methods and properties that you need to use to create and manage objects
+
+```lua
+local myClass = Class:Render({
+    Name = "MyClass",
+    ResetOnSpawn = false,
+})
+
+print(myClass.Name, myClass.ResetOnSpawn) -- MyClass, false
+
+myClass:Render({
+    Name = "ScreenGui"
+})
+
+print(myClass.Name) -- ScreenGui
+```
 ]=]
 
 --[=[
 @prop obj Instance
 @within Class
+
+Returns the Roblox Instance created by [Class]
 ]=]
 
 --[=[
@@ -187,6 +202,11 @@ Fires automatically when [Key.value] is changed
 @within Class
 
 @return Class
+]=]
+
+--[=[
+@type Properties {[string|Identifier]: any}
+@within Class
 ]=]
 
 return true
