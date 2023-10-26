@@ -64,7 +64,7 @@ local templates = {
 	}),
 }
 
-module.new("ScreenGui"):Render({
+local screengui = module.new("ScreenGui"):Render({
 	ResetOnSpawn = false,
 	Parent = Players.LocalPlayer.PlayerGui,
 	Name = "Test",

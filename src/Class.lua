@@ -99,16 +99,29 @@ function class:Clone()
 	return clonedClass
 end
 
-local classMeta = {
-	__index = class,
-}
-
 function module.new(className: string): Class
-	local newClass = setmetatable({}, classMeta)
-	newClass.obj = Instance.new(className)
-	newClass.className = className
-	newClass.connections = {}
-	newClass.changes = {
+	local newClass = newproxy(true)
+	local meta = getmetatable(newClass)
+	local t = {}
+
+	meta.__index = function(_, i)
+		return class[i] or t[i] or t.obj[i]
+	end
+	meta.__newindex = function(_, i, v)
+		if t[i] then
+			t[i] = v
+		elseif t.obj[i] then
+			t.obj[i] = v
+		end
+	end
+	meta.__tostring = function(_)
+		return t.obj.Name
+	end
+
+	t.obj = Instance.new(className)
+	t.className = className
+	t.connections = {}
+	t.changes = {
 		children = {},
 		any = {},
 	}

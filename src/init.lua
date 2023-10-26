@@ -37,5 +37,6 @@ export type Key = {
 }
 
 export type Module = typeof(Identifiers) & typeof(module)
+export type Class = typeof(Class.new())
 
 return module
