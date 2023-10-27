@@ -5,4 +5,6 @@ return {
 	Connect = "3",
 	Once = "4",
 	Reference = "5",
+	Mouse1Click = "6",
+	Mouse2Click = "7",
 }

@@ -36,7 +36,11 @@ local templates = {
 		TextColor3 = theme.Text,
 		Size = UDim2.fromScale(1, 0.1),
 		Text = "Button",
-		[module.Connect .. " Activated"] = function(self)
+		[module.Mouse1Click] = function(self, processed)
+			if processed then
+				return
+			end
+
 			local newText = self.obj.Text == "Button" and "😈😈😈" or "Button"
 			self:Render({
 				Text = newText,

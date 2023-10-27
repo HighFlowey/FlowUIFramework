@@ -5,6 +5,40 @@ Use these as [Properties] when using [Class:Render]
 ]=]
 
 --[=[
+@prop Mouse1Click Identifier
+@within Module
+
+Bind a function that gets called when mousebutton1 is pressed on a gui object
+
+```lua
+Class:Render({
+    [Module.Mouse1Click] = function(self, processed)
+        if not processed then
+            self.obj:Destroy() -- destroys itself when clicked
+        end
+    end
+})
+```
+]=]
+
+--[=[
+@prop Mouse2Click Identifier
+@within Module
+
+Bind a function that gets called when mousebutton2 is pressed on a gui object
+
+```lua
+Class:Render({
+    [Module.Mouse2Click] = function(self, processed)
+        if not processed then
+            self.obj:Destroy() -- destroys itself when right clicked
+        end
+    end
+})
+```
+]=]
+
+--[=[
 @prop Connect Identifier
 @within Module
 
@@ -186,6 +220,13 @@ print(myClass.Name) -- ScreenGui
 @within Class
 
 Returns the Roblox Instance created by [Class]
+]=]
+
+--[=[
+@prop Destroyed Signal
+@within Class
+
+Fires when [Class] is destroyed
 ]=]
 
 --[=[
