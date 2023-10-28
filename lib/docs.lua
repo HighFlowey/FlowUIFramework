@@ -12,10 +12,8 @@ Bind a function that gets called when mousebutton1 is pressed on a gui object
 
 ```lua
 Class:Render({
-    [Module.Mouse1Click] = function(self, processed)
-        if not processed then
-            self.obj:Destroy() -- destroys itself when clicked
-        end
+    [Module.Mouse1Click] = function(self)
+        self.obj:Destroy() -- destroys itself when clicked
     end
 })
 ```
@@ -25,14 +23,60 @@ Class:Render({
 @prop Mouse2Click Identifier
 @within Module
 
-Bind a function that gets called when mousebutton2 is pressed on a gui object
+Bind a function that gets called when mousebutton2 is pressed on a gui object (on mobile this counts as double click)
 
 ```lua
 Class:Render({
-    [Module.Mouse2Click] = function(self, processed)
-        if not processed then
-            self.obj:Destroy() -- destroys itself when right clicked
-        end
+    [Module.Mouse2Click] = function(self)
+        self.obj:Destroy() -- destroys itself when right clicked
+    end
+})
+```
+]=]
+
+--[=[
+@prop Drag Identifier
+@within Module
+
+Bind a function that gets called when ui object is getting dragged by mouse or touch
+
+```lua
+Class:Render({
+    [Module.Drag] = function(self, delta)
+        -- delta is Vector2
+        self.obj.Position += Udim2.fromOffset(delta.X, delta.Y)
+    end
+})
+```
+]=]
+
+--[=[
+@prop ZoomIn Identifier
+@within Module
+
+Bind a function that gets called when ui should zoomin by using mouse wheel or pinch gestures on mobile devices
+
+```lua
+Class:Render({
+    [Module.ZoomIn] = function(self, delta)
+        -- delta is Vector2
+        self.obj.Size += Udim2.fromOffset(delta.X, delta.Y)
+    end
+})
+```
+]=]
+
+--[=[
+@prop ZoomOut Identifier
+@within Module
+
+Bind a function that gets called when ui should zoomout by using mouse wheel or pinch gestures on mobile devices
+
+```lua
+Class:Render({
+    [Module.ZoomOut] = function(self, delta)
+        -- delta is Vector2
+        self.obj.Size -= Udim2.fromOffset(delta.X, delta.Y)
     end
 })
 ```

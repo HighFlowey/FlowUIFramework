@@ -1,5 +1,6 @@
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 local StarterGui = game:GetService("StarterGui")
 local UserInputService = game:GetService("UserInputService")
 local Identifiers = require(script.Parent:WaitForChild("Identifiers"))
@@ -17,13 +18,20 @@ local DEFAULT_PROPERTIES = {
 
 local module = {}
 local class = {}
+local guiInset = GuiService:GetGuiInset()
 local customEvents = {
 	Mouse1Click = {},
 	Mouse2Click = {},
+	ZoomIn = {},
+	ZoomOut = {},
+	Drag = {},
 }
 local customEvents_Identifiers = {
 	[Identifiers.Mouse1Click] = "Mouse1Click",
 	[Identifiers.Mouse2Click] = "Mouse2Click",
+	[Identifiers.ZoomIn] = "ZoomIn",
+	[Identifiers.ZoomOut] = "ZoomOut",
+	[Identifiers.Drag] = "Drag",
 }
 
 function class:SetProperty(i, v)
@@ -155,6 +163,7 @@ function module.new(className: string): Class
 	t.ready = false -- turns true when object's parent stopped being nil
 	t.className = className
 	t.connections = {}
+	t.dragging = false
 	t.changes = {
 		children = {},
 		any = {},
@@ -179,30 +188,108 @@ function module.new(className: string): Class
 	return newClass
 end
 
-UserInputService.InputBegan:Connect(function(input, processed)
-	local mousePosition = UserInputService:GetMouseLocation()
-	local guiInset = GuiService:GetGuiInset()
+local function IsMouseOverClass(class: Class)
+	local parentGui: ScreenGui = class.obj:FindFirstAncestorWhichIsA("ScreenGui")
 
-	local mouse = input.UserInputType == Enum.UserInputType.MouseButton1 and 1
-		or input.UserInputType == Enum.UserInputType.MouseButton2 and 2
+	if parentGui then
+		local mousePosition = UserInputService:GetMouseLocation()
+		local yOffset = parentGui.IgnoreGuiInset == false and guiInset.Y or 0
+		local objects =
+			Players.LocalPlayer.PlayerGui:GetGuiObjectsAtPosition(mousePosition.X, mousePosition.Y - yOffset)
+
+		if #objects > 0 and objects[1] == class.obj then
+			return true
+		end
+	end
+end
+
+local lastTouch = -1 -- double clicking on mobile will count as mousebutton2
+
+UserInputService.InputBegan:Connect(function(input)
+	local mouse
+
+	if input.UserInputType == Enum.UserInputType.Touch then
+		-- mobile
+		if time() - lastTouch < 0.5 then
+			mouse = 2
+		else
+			mouse = 1
+			lastTouch = time()
+		end
+	else
+		-- pc
+		mouse = input.UserInputType == Enum.UserInputType.MouseButton1 and 1
+			or input.UserInputType == Enum.UserInputType.MouseButton2 and 2
+	end
 
 	if mouse then
-		for class: Class, signals: { Signal.Signal } in customEvents[`Mouse{mouse}Click`] do
-			local parentGui: ScreenGui = class.obj:FindFirstAncestorWhichIsA("ScreenGui")
+		-- MouseClick1 or MouseClick2
 
-			if parentGui then
-				local yOffset = parentGui.IgnoreGuiInset == false and guiInset.Y or 0
-				local objects =
-					Players.LocalPlayer.PlayerGui:GetGuiObjectsAtPosition(mousePosition.X, mousePosition.Y - yOffset)
-
-				if #objects > 0 and objects[1] == class.obj then
-					for _, signal in signals do
-						signal:Fire(class, processed)
-					end
+		if mouse == 1 then
+			for class: Class, signals: { Signal.Signal } in customEvents.Drag do
+				if IsMouseOverClass(class) then
+					class.dragging = UserInputService:GetMouseLocation()
 
 					break
 				end
 			end
+		end
+
+		for class: Class, signals: { Signal.Signal } in customEvents[`Mouse{mouse}Click`] do
+			if IsMouseOverClass(class) then
+				for _, signal in signals do
+					signal:Fire(class)
+				end
+
+				break
+			end
+		end
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseWheel then
+		local zoomAmount = input.Position.Z
+		local style = zoomAmount < 0 and "Out" or "In"
+		zoomAmount = math.abs(zoomAmount)
+
+		for class: Class, signals: { Signal.Signal } in customEvents[`Zoom{style}`] do
+			if IsMouseOverClass(class) then
+				for _, signal in signals do
+					signal:Fire(class, zoomAmount)
+				end
+
+				break
+			end
+		end
+	end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+	local mouse = input.UserInputType == Enum.UserInputType.MouseButton1 and 1
+		or input.UserInputType == Enum.UserInputType.MouseButton2 and 2
+
+	if mouse then
+		for class: Class, signals: { Signal.Signal } in customEvents.Drag do
+			if class.dragging ~= false then
+				class.dragging = false
+
+				break
+			end
+		end
+	end
+end)
+
+RunService.RenderStepped:Connect(function()
+	for class: Class, signals: { Signal.Signal } in customEvents.Drag do
+		if class.dragging ~= false and class.dragging ~= nil then
+			local delta = UserInputService:GetMouseLocation() - class.dragging
+
+			for _, signal in signals do
+				signal:Fire(class, delta)
+			end
+
+			class.dragging = UserInputService:GetMouseLocation()
 		end
 	end
 end)

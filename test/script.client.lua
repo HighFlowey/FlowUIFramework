@@ -36,15 +36,23 @@ local templates = {
 		TextColor3 = theme.Text,
 		Size = UDim2.fromScale(1, 0.1),
 		Text = "Button",
-		[module.Mouse1Click] = function(self, processed)
-			if processed then
-				return
-			end
-
+		[module.Mouse1Click] = function(self)
 			local newText = self.obj.Text == "Button" and "😈😈😈" or "Button"
 			self:Render({
 				Text = newText,
 			})
+		end,
+		[module.Mouse2Click] = function(self)
+			print("Mouse2Click")
+		end,
+		[module.Drag] = function(self, dragDelta)
+			print(dragDelta)
+		end,
+		[module.ZoomIn] = function(self, amount)
+			print("ZoomIn", amount)
+		end,
+		[module.ZoomOut] = function(self, amount)
+			print("ZoomOut", amount)
 		end,
 		[module.Connect .. " MouseEnter"] = function(self)
 			HoverStart(self, UDim2.fromScale(1, 0.1))
