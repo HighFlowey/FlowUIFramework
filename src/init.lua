@@ -2,7 +2,9 @@ local Identifiers = require(script:WaitForChild("Identifiers"))
 local Signal = require(script.Parent:WaitForChild("signal"))
 local Class = require(script:WaitForChild("Class"))
 
-local module: Module = table.clone(Identifiers)
+local module: Module = {}
+module = table.clone(Identifiers)
+-- had to do it this way 👆 to make auto intellisense work in roblox studio 💀
 
 function module.key(v: any): Key
 	local proxy = newproxy(true)
