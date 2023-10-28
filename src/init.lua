@@ -36,7 +36,23 @@ export type Key = {
 	updated: Signal.Signal,
 }
 
-export type Module = typeof(Identifiers) & typeof(module)
-export type Class = typeof(Class.new())
+export type Identifier = string
+export type Class = Class.Class
+export type Module = {
+	key: (v: any) -> Key,
+	new: (className: string) -> Class,
+
+	Init: Identifier,
+	Children: Identifier,
+	Merge: Identifier,
+	Connect: Identifier,
+	Once: Identifier,
+	Reference: Identifier,
+	Mouse1Click: Identifier,
+	Mouse2Click: Identifier,
+	ZoomIn: Identifier,
+	ZoomOut: Identifier,
+	Drag: Identifier,
+}
 
 return module
