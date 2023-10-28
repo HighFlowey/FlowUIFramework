@@ -59,79 +59,79 @@ function class:Render(list: {}, archivable: boolean)
 	local done = Signal.new()
 	archivable = if archivable ~= nil then archivable else true
 
-	task.spawn(function()
-		for i, v in list do
-			local info = string.split(i, " ")
-			local customEventIdentifier = customEvents_Identifiers[info[1]]
-			local customEvent = customEvents[customEventIdentifier]
+	for i, v in list do
+		local info = string.split(i, " ")
+		local customEventIdentifier = customEvents_Identifiers[info[1]]
+		local customEvent = customEvents[customEventIdentifier]
 
-			if archivable then
-				if info[1] == Identifiers.Children then
-					for _, original in v do
-						table.insert(self.changes.children, original)
-					end
-				elseif info[1] ~= Identifiers.Reference then
-					self.changes.any[i] = v
+		if archivable then
+			if info[1] == Identifiers.Children then
+				for _, original in v do
+					table.insert(self.changes.children, original)
 				end
-			end
-
-			if customEvent then
-				if customEvent[self] == nil then
-					customEvent[self] = {}
-				end
-
-				local signal = Signal.new()
-				table.insert(customEvent[self], signal)
-
-				signal:Connect(v)
-
-				self.Destroyed:Connect(function()
-					signal:Destroy()
-					signal = nil
-				end)
-			elseif info[1] == Identifiers.Connect or info[1] == Identifiers.Once then
-				local c: RBXScriptConnection
-
-				c = self.obj[info[2]]:Connect(function(...)
-					if info[1] == Identifiers.Once then
-						c:Disconnect()
-					end
-
-					v(self, ...)
-				end)
-
-				if self.connections[i] then
-					self.connections[i]:Disconnect()
-				end
-
-				self.connections[i] = c
-			elseif info[1] == Identifiers.Init then
-				task.defer(v, self)
-			elseif info[1] == Identifiers.Merge then
-				self:Render(v)
-			elseif info[1] == Identifiers.Children then
-				for i, v in v do
-					v:Render({ Parent = self.obj })
-				end
-			elseif info[1] == Identifiers.Reference then
-				v.value = self
-			elseif typeof(v) == "userdata" then
-				self.obj[i] = v.value
-
-				local c = v.updated:Connect(function(newValue)
-					self.obj[i] = newValue
-				end)
-
-				if self.connections[i] then
-					self.connections[i]:Disconnect()
-				end
-
-				self.connections[i] = c
-			else
-				self:SetProperty(i, v)
+			elseif info[1] ~= Identifiers.Reference then
+				self.changes.any[i] = v
 			end
 		end
 
+		if customEvent then
+			if customEvent[self] == nil then
+				customEvent[self] = {}
+			end
+
+			local signal = Signal.new()
+			table.insert(customEvent[self], signal)
+
+			signal:Connect(v)
+
+			self.Destroyed:Connect(function()
+				signal:Destroy()
+				signal = nil
+			end)
+		elseif info[1] == Identifiers.Connect or info[1] == Identifiers.Once then
+			local c: RBXScriptConnection
+
+			c = self.obj[info[2]]:Connect(function(...)
+				if info[1] == Identifiers.Once then
+					c:Disconnect()
+				end
+
+				v(self, ...)
+			end)
+
+			if self.connections[i] then
+				self.connections[i]:Disconnect()
+			end
+
+			self.connections[i] = c
+		elseif info[1] == Identifiers.Init then
+			task.defer(v, self)
+		elseif info[1] == Identifiers.Merge then
+			self:Render(v)
+		elseif info[1] == Identifiers.Children then
+			for i, v in v do
+				v:Render({ Parent = self.obj })
+			end
+		elseif info[1] == Identifiers.Reference then
+			v.value = self
+		elseif typeof(v) == "userdata" then
+			self.obj[i] = v.value
+
+			local c = v.updated:Connect(function(newValue)
+				self.obj[i] = newValue
+			end)
+
+			if self.connections[i] then
+				self.connections[i]:Disconnect()
+			end
+
+			self.connections[i] = c
+		else
+			self:SetProperty(i, v)
+		end
+	end
+
+	RunService.Heartbeat:Once(function()
 		done:Fire(self)
 	end)
 
