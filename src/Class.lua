@@ -59,7 +59,7 @@ function class:Render(list: {}, archivable: boolean)
 	local done = Signal.new()
 	archivable = if archivable ~= nil then archivable else true
 
-	task.defer(function()
+	task.spawn(function()
 		for i, v in list do
 			local info = string.split(i, " ")
 			local customEventIdentifier = customEvents_Identifiers[info[1]]
